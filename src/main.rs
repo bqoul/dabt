@@ -100,17 +100,16 @@ fn main() {
 		return;
 	}
 
-	let file_name: Vec<&str> = args[1].split(".").collect();
-	if file_name.len() != 2 {
-		println!("ERROR: no file extension specified");
-		return;
-	}
-	else if file_name[1] != "json" {
-		println!("ERROR: wrong file extension, expected 'json'");
-		return;
-	}
-
 	for i in 1..args.len() {
+		let file_name: Vec<&str> = args[i].split(".").collect();
+		if file_name.len() != 2 {
+			println!("ERROR: no file extension specified");
+			return;
+		} else if file_name[1] != "json" {
+			println!("ERROR: wrong file extension, expected 'json'");
+			return;
+		}
+
 		match File::open(format!("{}", args[i])) {
 			Ok(mut file) => {
 				let mut raw_str = String::new();
