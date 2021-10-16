@@ -1,5 +1,4 @@
-use serde::{Serialize, Deserialize};
-
+use serde::{Deserialize};
 use std::{
 	fmt, 
 	env, 
@@ -13,7 +12,7 @@ enum NodeOrigin {
 	Left,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Deserialize, Clone)]
 struct Node {
 	value: i128,
 	left: Option<Box::<Node>>,
@@ -101,13 +100,16 @@ fn main() {
 	}
 
 	for i in 1..args.len() {
+		let mut output = String::new();
+		if args.len() != 2 { output = format!("\n[{}]", args[i]); }
+
 		let file_name: Vec<&str> = args[i].split(".").collect();
 		if file_name.len() != 2 {
-			println!("ERROR: no file extension specified");
-			return;
+			println!("{}\nERROR: no file extension specified", output);
+			continue;
 		} else if file_name[1] != "json" {
-			println!("ERROR: wrong file extension, expected 'json'");
-			return;
+			println!("{}\nERROR: wrong file extension, expected 'json'", output);
+			continue;
 		}
 
 		match File::open(format!("{}", args[i])) {
@@ -116,16 +118,22 @@ fn main() {
 
 				match file.read_to_string(&mut raw_str) {
 					Ok(_) => {
-						let tree: Node = serde_json::from_str(&raw_str).unwrap();
-						if args.len() != 2 { println!("\n{}:{}\n", args[i], tree); }
-						else { println!("{}\n", tree); }
+						let tree: Node = match serde_json::from_str(&raw_str) {
+							Ok(tree) => tree,
+							Err(why) => {
+								println!("{}\nERROR: failed file deserialization\n{}", output, why);
+								return;
+							}
+						};
+
+						println!("{}{}", output, tree);
 					},
 
-					Err(why) => println!("ERROR: failed to read the file\n{}", why),
+					Err(why) => println!("{}\nERROR: failed to read the file\n{}", output, why),
 				}
 			},
 
-			Err(why) => println!("ERROR: failed to open the file\n{}", why),
+			Err(why) => println!("{}\nERROR: failed to open the file\n{}", output, why),
 		}
 	}
 }
