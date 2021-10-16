@@ -95,8 +95,8 @@ impl<'a> fmt::Display for Node {
 
 fn main() {
 	let args: Vec<String> = env::args().collect();
-	if args.len() != 2 { 
-		println!("ERROR: wrong amount of arguments, expected 1");
+	if args.len() < 2 { 
+		println!("ERROR: wrong amount of arguments, expected at least 1");
 		return;
 	}
 
@@ -110,20 +110,23 @@ fn main() {
 		return;
 	}
 
-	match File::open(format!("{}", file_name.join("."))) {
-		Ok(mut file) => {
-			let mut raw_str = String::new();
+	for i in 1..args.len() {
+		match File::open(format!("{}", args[i])) {
+			Ok(mut file) => {
+				let mut raw_str = String::new();
 
-			match file.read_to_string(&mut raw_str) {
-				Ok(_) => {
-					let tree: Node = serde_json::from_str(&raw_str).unwrap();
-					println!("{}", tree);
-				},
+				match file.read_to_string(&mut raw_str) {
+					Ok(_) => {
+						let tree: Node = serde_json::from_str(&raw_str).unwrap();
+						if args.len() != 2 { println!("\n{}:{}\n", args[i], tree); }
+						else { println!("{}\n", tree); }
+					},
 
-				Err(why) => println!("ERROR: failed to read the file\n{}", why),
-			}
-		},
+					Err(why) => println!("ERROR: failed to read the file\n{}", why),
+				}
+			},
 
-		Err(why) => println!("ERROR: failed to open the file\n{}", why),
+			Err(why) => println!("ERROR: failed to open the file\n{}", why),
+		}
 	}
 }
