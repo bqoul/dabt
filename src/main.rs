@@ -122,7 +122,7 @@ fn main() {
 							Ok(tree) => tree,
 							Err(why) => {
 								println!("{}\nERROR: failed file deserialization\n{}", output, why);
-								return;
+								continue;
 							}
 						};
 
