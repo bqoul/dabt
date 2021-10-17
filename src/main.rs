@@ -81,14 +81,14 @@ impl<'a> fmt::Display for Node {
 			let mut bot_row: Vec<char> = rows[r+1].chars().collect();
 
 			for c in 0..cur_row.len() {
-				if cur_row[c] == '┤' || cur_row[c] == '┌' || cur_row[c] == '│' {
+				if cur_row[c] == '┤' || cur_row[c] == '┌' || cur_row[c] == '│' || cur_row[c] == '┐' {
 					if bot_row[c] == ' ' { bot_row[c] = '│'; }
 				}
 			}
 			rows[r + 1] = bot_row.iter().collect();
 		}
 
-		return write!(formatter, "\n{}", rows.join("\n"));
+		return write!(formatter, "{}", rows.join("\n"));
 	}
 }
 
@@ -100,19 +100,19 @@ fn main() {
 	}
 
 	for i in 1..args.len() {
-		let mut output = String::new();
-		if args.len() != 2 { output = format!("\n[{}]", args[i]); }
+		let mut tag = String::new();
+		let mut file_name: Vec<&str> = args[i].split(".").collect();
 
-		let file_name: Vec<&str> = args[i].split(".").collect();
 		if file_name.len() != 2 {
-			println!("{}\nERROR: no file extension specified", output);
-			continue;
+			file_name.push("json");
 		} else if file_name[1] != "json" {
-			println!("{}\nERROR: wrong file extension, expected 'json'", output);
+			println!("{}\nERROR: wrong file extension, expected 'json'", tag);
 			continue;
 		}
 
-		match File::open(format!("{}", args[i])) {
+		if args.len() != 2 { tag = format!("[{}]\n", file_name.join(".")); }
+
+		match File::open(format!("{}", file_name.join("."))) {
 			Ok(mut file) => {
 				let mut raw_str = String::new();
 
@@ -121,19 +121,19 @@ fn main() {
 						let tree: Node = match serde_json::from_str(&raw_str) {
 							Ok(tree) => tree,
 							Err(why) => {
-								println!("{}\nERROR: failed file deserialization\n{}", output, why);
+								println!("{}ERROR: failed file deserialization\n{}\n", tag, why);
 								continue;
 							}
 						};
 
-						println!("{}{}", output, tree);
+						println!("\n{}{}\n", tag, tree);
 					},
 
-					Err(why) => println!("{}\nERROR: failed to read the file\n{}", output, why),
+					Err(why) => println!("{}ERROR: failed to read the file\n{}\n", tag, why),
 				}
 			},
 
-			Err(why) => println!("{}\nERROR: failed to open the file\n{}", output, why),
+			Err(why) => println!("{}ERROR: failed to open the file\n{}\n", tag, why),
 		}
 	}
 }
