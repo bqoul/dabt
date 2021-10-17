@@ -126,5 +126,5 @@
 	}
 }
 ```
-#### ouput
+#### output
 ![](https://i.imgur.com/9mJ8Rp4.png)
