@@ -4,7 +4,7 @@ use std::{
 	env, 
 	fs::File,
 	io::prelude::*,
-	};
+};
 
 enum NodeOrigin {
 	Main,
@@ -76,13 +76,14 @@ impl<'a> fmt::Display for Node {
 		sort_rows(Some(Box::new(self.clone())), NodeOrigin::Main, &mut rows, 0, 0);
 
 		//filling emply space between arms with '│'
+		const EDGES: [char; 4] = ['┤', '┌', '│', '┐'];
 		for r in 0..rows.clone().len() - 1 {
 			let cur_row: Vec<char> = rows[r].chars().collect();
 			let mut bot_row: Vec<char> = rows[r+1].chars().collect();
 
 			for c in 0..cur_row.len() {
-				if cur_row[c] == '┤' || cur_row[c] == '┌' || cur_row[c] == '│' || cur_row[c] == '┐' {
-					if bot_row[c] == ' ' { bot_row[c] = '│'; }
+				if EDGES.contains(&cur_row[c]) && bot_row[c] == ' ' {
+					bot_row[c] = '│';
 				}
 			}
 			rows[r + 1] = bot_row.iter().collect();
