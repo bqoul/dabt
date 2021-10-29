@@ -21,75 +21,46 @@ struct Node {
 
 impl<'a> fmt::Display for Node {
 	fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-		fn sort_rows(tree: Option<Box<Node>>, node_origin: NodeOrigin, rows: &mut Vec<String>, row_pos: usize, spaces: usize) {
+		fn sort_display(tree: Option<Box<Node>>, display: &mut Vec<String>, origin: NodeOrigin, spaces: usize) {
 			if let Some(node) = tree {
-				/*
-					ascii symbols that are used for displaying 
-					tree arms have length of 3 instead of 1, so
-					'decrement' is how much we need to subtract from row.len() 
-					to get the actual length of the row
-				*/
-				let mut decrement: usize = 5;
-
-				let (mut back_arm, mut front_arm) = (' ', ' ');
-
-				match node_origin {
-					NodeOrigin::Right => back_arm = '┌',
-					NodeOrigin::Left  => back_arm = '└',
-					NodeOrigin::Main  => decrement -= 2,
+				let mut back = ' ';
+				match origin {
+					NodeOrigin::Right => back = '┌',
+					NodeOrigin::Left  => back = '└',
+					NodeOrigin::Main  => {},
 				}
 
+				let mut front = ' ';
 				match (node.left.is_none(), node.right.is_none()) {
-					(false, false) => front_arm = '┤', 	// left and right nodes
-					(false, true)  => front_arm = '┐',  // only left node
-					(true, false)  => front_arm = '┘',  // only right node
-					(true, true)   => decrement -= 3,   // no nodes
+					(false, false) => front = '┤', 	// left and right nodes
+					(false, true)  => front = '┐',  // only left node
+					(true, false)  => front = '┘',  // only right node
+					(true, true)   => {},           // no nodes
 				}
 
-				let row = format!("{}{}[{}]{}", " ".repeat(spaces), back_arm, node.value.to_string(), front_arm);
-				//i wrote it, it works, but i have no idea how and why
-				if let NodeOrigin::Left = node_origin {
-					rows.insert(row_pos + 1, row.clone());
-				} else {
-					rows.insert(row_pos, row.clone());
+				let mut row: Vec<char> = format!("{}{}[{}]{}", " ".repeat(spaces), back, node.value, front).chars().collect();
+				//adding rows to 'display' from right to left
+				sort_display(node.right, display, NodeOrigin::Right, spaces + node.value.to_string().len() + 3);
+		
+				if let Some(last_row) = display.last() {
+					const EDGES: [char; 4] = ['┤', '┌', '│', '┐'];
+					//formatting the row for correct tree display
+					for (p, c) in last_row.chars().enumerate() {
+						if EDGES.contains(&c) && row[p] == ' ' {
+							row[p] = '│';
+						}
+					}
 				}
+				
+				display.push(row.iter().collect());
 
-				sort_rows(
-					node.right, 
-					NodeOrigin::Right, 
-					rows, 
-					rows.iter().position(|r| *r == row).unwrap(), 
-					row.len() - decrement
-				);
-
-				sort_rows(
-					node.left, 
-					NodeOrigin::Left, 
-					rows, 
-					rows.iter().position(|l| *l == row).unwrap(), 
-					row.len() - decrement
-				);
+				sort_display(node.left, display, NodeOrigin::Left, spaces + node.value.to_string().len() + 3);
 			}
 		}
 
-		let mut rows: Vec<String> = Vec::new();
-		sort_rows(Some(Box::new(self.clone())), NodeOrigin::Main, &mut rows, 0, 0);
-
-		//filling emply space between arms with '│'
-		const EDGES: [char; 4] = ['┤', '┌', '│', '┐'];
-		for r in 0..rows.clone().len() - 1 {
-			let cur_row: Vec<char> = rows[r].chars().collect();
-			let mut bot_row: Vec<char> = rows[r+1].chars().collect();
-
-			for c in 0..cur_row.len() {
-				if EDGES.contains(&cur_row[c]) && bot_row[c] == ' ' {
-					bot_row[c] = '│';
-				}
-			}
-			rows[r + 1] = bot_row.iter().collect();
-		}
-
-		return write!(formatter, "{}", rows.join("\n"));
+		let mut display = Vec::new();
+		sort_display(Some(Box::new(self.clone())), &mut display, NodeOrigin::Main, 0);
+		return write!(formatter, "{}", display.join("\n"));
 	}
 }
 
