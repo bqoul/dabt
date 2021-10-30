@@ -35,17 +35,18 @@ impl std::fmt::Display for Node {
 				let mut row: Vec<char> = format!("{}{}[{}]{}", " ".repeat(spaces), back, node.value, front).chars().collect();
 				//adding rows to 'display' from right to left
 				sort_display(node.right, display, NodeOrigin::Right, spaces + node.value.to_string().len() + 3); //'3' is the lenght of the '{back_arm}[]'
-		
+
 				if let Some(last_row) = display.last() {
 					const EDGES: [char; 4] = ['┤', '┌', '│', '┐'];
 					//formatting the row for correct tree display
 					for (p, c) in last_row.chars().enumerate() {
+						//if last row has the edge and current row has whitespace directly below it
 						if EDGES.contains(&c) && row[p] == ' ' {
-							row[p] = '│';
+							row[p] = '│'; // then adding the '│' instead of it
 						}
 					}
 				}
-				
+
 				display.push(row.iter().collect());
 
 				sort_display(node.left, display, NodeOrigin::Left, spaces + node.value.to_string().len() + 3);
