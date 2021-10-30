@@ -71,7 +71,7 @@ fn main() {
 		if args.len() != 2 { tag = format!("[{}]\n", args[i]); }
 
 		let mut file_name: Vec<&str> = args[i].split(".").collect();
-		if file_name.len() != 2 { file_name.push("json"); } 
+		if file_name.len() == 1 { file_name.push("json"); } 
 		else if file_name[1] != "json" {
 			println!("{}ERROR: wrong file extension, expected 'json'.\n", tag);
 			continue;
